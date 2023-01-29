@@ -16,8 +16,8 @@ $(document).ready(function () {
         `);
     }
 
-    function addNewCard(author, picUrl, thumbUrl, stars, title, subTitle, duration, index) {
-        $(".videos .carousel-inner").append(`
+    function addNewCard(author, picUrl, thumbUrl, stars, title, subTitle, duration, index, selector) {
+        $(selector).append(`
             <div class="carousel-item ${index == 0 ?`active` : ``} col-12 col-sm-6 col-md-4 col-lg-3">
                 <div class="card border-0" style="max-width: 25.5rem;">
                     <div class="position-relative image-group">
@@ -68,13 +68,18 @@ $(document).ready(function () {
         }); 
     }
 
-    function displayVideos() {
-        displayLoader(true, ".videos .carousel-inner");
-        $.get("https://smileschool-api.hbtn.info/popular-tutorials", function (data, status) {
+    function displayVideos(carousel, url, selector) {
+        displayLoader(true, carousel + " .carousel-inner");
+        $.get(url, function (data, status) {
             $.each(data, function(index, value) {
-                addNewCard(value.author, value.author_pic_url, value.thumb_url, value.star, value.title, value["sub-title"], value.duration, index);
+                addNewCard(value.author, value.author_pic_url, value.thumb_url, value.star, value.title, value["sub-title"], value.duration, index, selector);
             });
-            displayLoader(false, ".videos .carousel-inner");
+            while ($(carousel + ' .carousel-item').length < 5) {
+                $.each(data, function(index, value) {
+                    addNewCard(value.author, value.author_pic_url, value.thumb_url, value.star, value.title, value["sub-title"], value.duration, -1, selector);
+                });
+            }
+            displayLoader(false, carousel + " .carousel-inner");
         }); 
     }
 
@@ -87,32 +92,50 @@ $(document).ready(function () {
         
     }
 
+    function slideCarousel(e, selector) {
+        /*
+            CC 2.0 License Iatek LLC 2018 - Attribution required
+        */
+            const $e = $(e.relatedTarget);
+            const idx = $e.index();
+            const itemsPerSlide = 4;
+            const totalItems = $(selector + ' .carousel-item').length;
+            
+            if (idx >= totalItems-(itemsPerSlide-1)) {
+                const it = itemsPerSlide - (totalItems - idx);
+                for (let i=0; i<it; i++) {
+                    // append slides to end
+                    if (e.direction=="left") {
+                        $(selector + ' .carousel-item').eq(i).appendTo(selector + ' .carousel-inner');
+                    }
+                    else {
+                        $(selector + ' .carousel-item').eq(0).appendTo(selector + ' .carousel-inner');
+                    }
+                }
+            }
+    }
+
     /*
     Carousel
     */
     $('#carouselVideos').on('slide.bs.carousel', function (e) {
-        /*
-            CC 2.0 License Iatek LLC 2018 - Attribution required
-        */
-        const $e = $(e.relatedTarget);
-        const idx = $e.index();
-        const itemsPerSlide = 5;
-        const totalItems = $('#carouselVideos .carousel-item').length;
-        
-        if (idx >= totalItems-(itemsPerSlide-1)) {
-            const it = itemsPerSlide - (totalItems - idx);
-            for (let i=0; i<it; i++) {
-                // append slides to end
-                if (e.direction=="left") {
-                    $('#carouselVideos .carousel-item').eq(i).appendTo('#carouselVideos .carousel-inner');
-                }
-                else {
-                    $('#carouselVideos .carousel-item').eq(0).appendTo('#carouselVideos .carousel-inner');
-                }
-            }
-        }
+        slideCarousel(e, "#carouselVideos");
     });
+
+    $('#carouselLatestVideos').on('slide.bs.carousel', function (e) {
+        slideCarousel(e, "#carouselLatestVideos");
+    });
+
       
     displayQuotes();
-    displayVideos();
+    const carouselVideos = document.getElementById("carouselVideos");
+    if (carouselVideos) {
+        displayVideos("#carouselVideos", "https://smileschool-api.hbtn.info/popular-tutorials", "#carouselVideos .carousel-inner");
+
+    }
+    const carouselLatestVideos = document.getElementById("carouselLatestVideos");
+    if (carouselLatestVideos) {
+        displayVideos("#carouselLatestVideos", "https://smileschool-api.hbtn.info/latest-videos", "#carouselLatestVideos .carousel-inner");
+  
+    }
 });
