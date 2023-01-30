@@ -89,59 +89,98 @@ $(document).ready(function () {
     
     function displayQuotes() {
         displayLoader(true, ".section-quote .carousel-inner");
-        $.get("https://smileschool-api.hbtn.info/quotes", function (data, status) {
-            $.each(data, function(index, value) {
-                addNewQuotes(value.pic_url, value.name, value.title, value.text, index);
-            });
-            displayLoader(false, ".section-quote .carousel-inner");
-        }); 
+        $.ajax({
+            type: "GET",
+            url: "https://smileschool-api.hbtn.info/xml/quotes",
+            dataType: "xml",
+            success: function(xml) {
+                $(xml).find("quote").each(function (index) {
+                    const picUrl = $(this).find("pic_url").text();
+                    const name = $(this).find("name").text(); 
+                    const title = $(this).find("title").text();
+                    const text = $(this).find("text").text();
+                    addNewQuotes(picUrl, name, title, text, index);
+                });
+                displayLoader(false, ".section-quote .carousel-inner");
+        }
+    });
     }
 
     function displayVideos(carousel, url, selector) {
         displayLoader(true, carousel + " .carousel-inner");
-        $.get(url, function (data, status) {
-            $.each(data, function(index, value) {
-                addNewCard(value.author, value.author_pic_url, value.thumb_url, value.star, value.title, value["sub-title"], value.duration, index, selector);
-            });
-            while ($(carousel + ' .carousel-item').length < 5) {
-                $.each(data, function(index, value) {
-                    addNewCard(value.author, value.author_pic_url, value.thumb_url, value.star, value.title, value["sub-title"], value.duration, -1, selector);
+        $.ajax({
+            type: "GET",
+            url: url,
+            dataType: "xml",
+            success: function(xml) {
+                $(xml).find("video").each(function (index) {
+                    const author = $(this).find("author").text();
+                    const authorPicUrl = $(this).find("author_pic_url").text();
+                    const thumbUrl = $(this).find("thumb_url").text();
+                    const star = $(this).attr("star"); 
+                    const title = $(this).find("title").text(); 
+                    const subTitle = $(this).find("sub-title").text();
+                    const duration = $(this).find("duration").text();
+                    addNewCard(author, authorPicUrl, thumbUrl, star, title, subTitle, duration, index, selector);
+                
                 });
-            }
+                while ($(carousel + ' .carousel-item').length < 5) {
+                    $(xml).find("video").each(function (index) {
+                        const author = $(this).find("author").text();
+                        const authorPicUrl = $(this).find("author_pic_url").text();
+                        const thumbUrl = $(this).find("thumb_url").text();
+                        const star = $(this).attr("star"); 
+                        const title = $(this).find("title").text(); 
+                        const subTitle = $(this).find("sub-title").text();
+                        const duration = $(this).find("duration").text();
+                        addNewCard(author, authorPicUrl, thumbUrl, star, title, subTitle, duration, -1, selector);
+                    });
+                }
             displayLoader(false, carousel + " .carousel-inner");
-        }); 
+        }
+    });
     }
 
     function fillFilters() {
-        $.get("https://smileschool-api.hbtn.info/courses", function (data, status) {
-            $(".section-filters input").val(data.q);
-            let search = $(".section-filters input").val();
-            let topic = $("#topic button").attr("data-name");
-            let sort = $("#sortBy button").attr("data-name");
-            $.each(data.topics, function(index, value) {
-                $("#topic .dropdown-menu").append(`<a class="dropdown-item f-medium px-4 py-2" data-name="${value}" href="#">${formatValue(value)}</a>`);
-            });
-            $(".section-filters input").change(function () {
-                search = $(".section-filters input").val();
-                displayCourses(search, topic, sort);
-            });
-            $("#topic button").text(formatValue(data.topics[0]));
-            $("#topic .dropdown-menu a").click(function () {
-                topic = $(this).attr("data-name");
-                $("#topic button").text($(this).text());
-                displayCourses(search, topic, sort);
-            });
-            
-            $.each(data.sorts, function(index, value) {
-                $("#sortBy .dropdown-menu").append(`<a class="dropdown-item f-medium px-4 py-2" data-name="${value}" href="#">${formatValue(value)}</a>`);
-            });
-            $("#sortBy button").text(formatValue(data.sorts[0]));
-            $("#sortBy .dropdown-menu a").click(function () {
+        $.ajax({
+            type: "GET",
+            url: "https://smileschool-api.hbtn.info/xml/courses",
+            dataType: "xml",
+            success: function(xml) {
+                let search = $(".section-filters input").val();
+                let topic = $("#topic button").attr("data-name");
+                let sort = $("#sortBy button").attr("data-name");
+                $(".section-filters input").val($(xml).find("q").text());
+                $(xml).find("topics topic").each(function (index) {
+                    const value = $(this).text();
+                    if (index == 0) {
+                        $("#topic button").text(formatValue(value));
+                    }
+                    $("#topic .dropdown-menu").append(`<a class="dropdown-item f-medium px-4 py-2" data-name="${value}" href="#">${formatValue(value)}</a>`);
+                });
+                $(".section-filters input").change(function () {
+                    search = $(".section-filters input").val();
+                    displayCourses(search, topic, sort);
+                });
+                $("#topic .dropdown-menu a").click(function () {
+                    topic = $(this).attr("data-name");
+                    $("#topic button").text($(this).text());
+                    displayCourses(search, topic, sort);
+                });
+                $(xml).find("sorts sort").each(function (index) {
+                    const value = $(this).text();
+                    if (index == 0) {
+                        $("#sortBy button").text(formatValue(value));
+                    }
+                    $("#sortBy .dropdown-menu").append(`<a class="dropdown-item f-medium px-4 py-2" data-name="${value}" href="#">${formatValue(value)}</a>`);
+                });
+                $("#sortBy .dropdown-menu a").click(function () {
                 sort = $(this).attr("data-name");
                 $("#sortBy button").text($(this).text());
                 displayCourses(search, topic, sort);
             });
-        }); 
+            }
+        });
     }
 
     function formatValue(value) {
@@ -157,26 +196,38 @@ $(document).ready(function () {
         displayLoader(true, ".section-result .section-inner");
 
         $("#matchingCourses").empty();
-        let url = "https://smileschool-api.hbtn.info/courses?";
+        let url = "https://smileschool-api.hbtn.info/xml/courses?";
         const params = {
             q: search,
             topic: topic,
             sort: sort,
         };
         Object.keys(params).forEach(function(key){url += "&" + key + "=" + params[key];});
-
-        $.get(url, function (data, status) {
-            $.each(data.courses, function (index, value) {
-                addNewCourse(value.thumb_url, value.title, value["sub-title"], value.author_pic_url, value.author, value.star, value.duration);
-            });
-            const numberCourse = data.courses.length;
-            if (numberCourse > 1) {
-                $(".section-result p").text(numberCourse + " videos")
-            } else {
-                $(".section-result p").text(numberCourse + " video")
-            }
-            displayLoader(false, ".section-result .section-inner");
-        });
+        $.ajax({
+            type: "GET",
+            url: url,
+            dataType: "xml",
+            success: function(xml) {
+                $(xml).find("course").each(function (index) {
+                    const author = $(this).find("author").text();
+                    const authorPicUrl = $(this).find("author_pic_url").text();
+                    const thumbUrl = $(this).find("thumb_url").text();
+                    const star = $(this).attr("star"); 
+                    const title = $(this).find("title").text(); 
+                    const subTitle = $(this).find("sub-title").text();
+                    const duration = $(this).find("duration").text();
+                    addNewCourse(thumbUrl, title, subTitle, authorPicUrl, author, star, duration);
+                
+                });
+                const numberCourse = $(xml).find("course").length;
+                if (numberCourse > 1) {
+                    $(".section-result p").text(numberCourse + " videos")
+                } else {
+                    $(".section-result p").text(numberCourse + " video")
+                }
+                displayLoader(false, ".section-result .section-inner");
+        }
+    });
     }
 
     function displayLoader(loader, tag) {
@@ -228,12 +279,12 @@ $(document).ready(function () {
     }
     const carouselVideos = document.getElementById("carouselVideos");
     if (carouselVideos) {
-        displayVideos("#carouselVideos", "https://smileschool-api.hbtn.info/popular-tutorials", "#carouselVideos .carousel-inner");
+        displayVideos("#carouselVideos", "https://smileschool-api.hbtn.info/xml/popular-tutorials", "#carouselVideos .carousel-inner");
 
     }
     const carouselLatestVideos = document.getElementById("carouselLatestVideos");
     if (carouselLatestVideos) {
-        displayVideos("#carouselLatestVideos", "https://smileschool-api.hbtn.info/latest-videos", "#carouselLatestVideos .carousel-inner");
+        displayVideos("#carouselLatestVideos", "https://smileschool-api.hbtn.info/xml/latest-videos", "#carouselLatestVideos .carousel-inner");
   
     }
     const sectionresult = document.getElementsByClassName("section-result").length;
