@@ -42,6 +42,35 @@ $(document).ready(function () {
             </div>
         `);
     }
+    
+    function addNewCourse(thumbUrl, title, subTitle, picUrl, author, stars, duration) {
+        $("#matchingCourses").append(`
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3 mt-4">
+                <div class="card border-0">
+                    <div class="position-relative image-group">
+                        <img src="./images/play.png" alt="play" width="64px" class="play position-absolute">
+                        <img src="${thumbUrl}" alt="card-1" class="card-img-top img-fluid" height="154px">
+                    </div>
+                    <div class="card-body">
+                        <div class="card-body">
+                            <h5 class="card-title font-weight-bold">${title}</h5>
+                            <p class="card-text text-muted">${subTitle}</p>
+                            <div class="row justify-content-start align-items-center p-4">
+                                <img src="${picUrl}" alt="Phillip Massay" width="30px" class="rounded-circle mr-4">
+                                <p class="m-0 font-weight-bold">${author}</p>
+                            </div>
+                            <div class="row justify-content-between px-4">
+                                <div class="d-inline-block">
+                                    ${displayStars(stars)}
+                                </div>
+                                <p class="font-weight-bold">${duration}</p>
+                            </div>
+                        </div>
+                    </div> 
+                </div>   
+            </div>
+        `);
+    }
 
     function displayStars(number) {
         let string = "";
@@ -81,6 +110,73 @@ $(document).ready(function () {
             }
             displayLoader(false, carousel + " .carousel-inner");
         }); 
+    }
+
+    function fillFilters() {
+        $.get("https://smileschool-api.hbtn.info/courses", function (data, status) {
+            $(".section-filters input").val(data.q);
+            let search = $(".section-filters input").val();
+            let topic = $("#topic button").attr("data-name");
+            let sort = $("#sortBy button").attr("data-name");
+            $.each(data.topics, function(index, value) {
+                $("#topic .dropdown-menu").append(`<a class="dropdown-item f-medium px-4 py-2" data-name="${value}" href="#">${formatValue(value)}</a>`);
+            });
+            $(".section-filters input").change(function () {
+                search = $(".section-filters input").val();
+                displayCourses(search, topic, sort);
+            });
+            $("#topic button").text(formatValue(data.topics[0]));
+            $("#topic .dropdown-menu a").click(function () {
+                topic = $(this).attr("data-name");
+                $("#topic button").text($(this).text());
+                displayCourses(search, topic, sort);
+            });
+            
+            $.each(data.sorts, function(index, value) {
+                $("#sortBy .dropdown-menu").append(`<a class="dropdown-item f-medium px-4 py-2" data-name="${value}" href="#">${formatValue(value)}</a>`);
+            });
+            $("#sortBy button").text(formatValue(data.sorts[0]));
+            $("#sortBy .dropdown-menu a").click(function () {
+                sort = $(this).attr("data-name");
+                $("#sortBy button").text($(this).text());
+                displayCourses(search, topic, sort);
+            });
+        }); 
+    }
+
+    function formatValue(value) {
+        const arr = value.split("_");
+        for (let i = 0; i < arr.length; i++) {
+            arr[i] = arr[i].charAt(0).toUpperCase() + arr[i].slice(1);
+        }
+        const str = arr.join(" ");
+        return str
+    }
+
+    function displayCourses(search = "", topic = "", sort = "") {
+        displayLoader(true, ".section-result .section-inner");
+
+        $("#matchingCourses").empty();
+        let url = "https://smileschool-api.hbtn.info/courses?";
+        const params = {
+            q: search,
+            topic: topic,
+            sort: sort,
+        };
+        Object.keys(params).forEach(function(key){url += "&" + key + "=" + params[key];});
+
+        $.get(url, function (data, status) {
+            $.each(data.courses, function (index, value) {
+                addNewCourse(value.thumb_url, value.title, value["sub-title"], value.author_pic_url, value.author, value.star, value.duration);
+            });
+            displayLoader(false, ".section-result .section-inner");
+            const numberCourse = data.courses.length;
+            if (numberCourse > 1) {
+                $(".section-result p").text(numberCourse + " videos")
+            } else {
+                $(".section-result p").text(numberCourse + " video")
+            }
+        });
     }
 
     function displayLoader(loader, tag) {
@@ -126,8 +222,10 @@ $(document).ready(function () {
         slideCarousel(e, "#carouselLatestVideos");
     });
 
-      
-    displayQuotes();
+    const quotessection = document.getElementsByClassName("section-quote").length;
+    if (quotessection > 0) {
+        displayQuotes();
+    }
     const carouselVideos = document.getElementById("carouselVideos");
     if (carouselVideos) {
         displayVideos("#carouselVideos", "https://smileschool-api.hbtn.info/popular-tutorials", "#carouselVideos .carousel-inner");
@@ -137,5 +235,10 @@ $(document).ready(function () {
     if (carouselLatestVideos) {
         displayVideos("#carouselLatestVideos", "https://smileschool-api.hbtn.info/latest-videos", "#carouselLatestVideos .carousel-inner");
   
+    }
+    const sectionresult = document.getElementsByClassName("section-result").length;
+    if (sectionresult > 0) {
+        fillFilters();
+        displayCourses();
     }
 });
