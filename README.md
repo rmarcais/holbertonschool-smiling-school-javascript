@@ -1,4 +1,4 @@
-# 0x0B. Implement a design with bootstrap
+# 0x0F. Build a web app in JavaScript
 
 <p align="center">
 <img src="https://preview.redd.it/7285bvqz43s01.png?auto=webp&s=ebbd7a1947e88e2752643c87acdf679708b62ad3" alt="meme" width="400">
