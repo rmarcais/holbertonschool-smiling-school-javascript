@@ -52,7 +52,7 @@ $(document).ready(function () {
                         <img src="${thumbUrl}" alt="card-1" class="card-img-top img-fluid" height="154px">
                     </div>
                     <div class="card-body">
-                        <div class="card-body">
+                        <div class="card-body p-0">
                             <h5 class="card-title font-weight-bold">${title}</h5>
                             <p class="card-text text-muted">${subTitle}</p>
                             <div class="row justify-content-start align-items-center p-4">
@@ -171,9 +171,9 @@ $(document).ready(function () {
             });
             const numberCourse = data.courses.length;
             if (numberCourse > 1) {
-                $(".section-result p").text(numberCourse + " videos")
+                $(".section-result p.courses-count").text(numberCourse + " videos")
             } else {
-                $(".section-result p").text(numberCourse + " video")
+                $(".section-result p.courses-count").text(numberCourse + " video")
             }
             displayLoader(false, ".section-result .section-inner");
         });
