@@ -6,7 +6,7 @@
 
 ## Context
 
-Hi everybody ! In this project, I will finalize the previous project 0x0B. Implement a design with bootstrap and make some parts dynamic with Javascript (JQuery exactly).
+Hi everybody ! My name's Rémi Marçais and as a software development student, I am constantly learning and growing as a software engineer. In this project, I will finalize the previous project 0x0B. Implement a design with bootstrap and make some parts dynamic with Javascript (JQuery exactly).
 
 I will reuse final files of 0x0B. Implement a design with bootstrap and update them.
 
@@ -77,6 +77,12 @@ For this project, you will need: fonts from Google, JQuery, Bootstrap CSS/JS
 <img src="./images/result-3.gif" width="800px">
 </p>
 
+## Challenges 💪
+
+- Create an interface according to customer request.
+- Make the different pages responsive.
+- Use all the knowledge seen previously.
+
 ## Tools 🛠️
 
 | VS Code | Figma | Chrome DevTools | Bootstrap | HTML5 | CSS3 | jQuery |
@@ -92,6 +98,6 @@ git clone git@github.com:rmarcais/holbertonschool-smiling-school-javascript.git
 
 ## Author 🖊️
 
-| Rémi Marçais |
+| Rémi Marçais (Portfolio projetct [here](https://github.com/rmarcais/Portfolio_project_Motiv)) |
 |:---:|
 | <a href="https://www.linkedin.com/in/r%C3%A9mi-mar%C3%A7ais-274a4421a/"> <img alt="Rémi Marçais Linkedin" width="40px" src="https://cdn-icons-png.flaticon.com/512/174/174857.png"> <a href="https://github.com/rmarcais"> <img alt="Rémi Marçais Github" width="40px" src="https://cdn-icons-png.flaticon.com/512/25/25231.png"> |
